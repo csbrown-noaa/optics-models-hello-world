@@ -25,7 +25,7 @@ cd optics-models-hello-world
 
 ## 💻 Step 2: Test the Dummy Locally
 
-Before deploying to the cloud, verify the dummy code works on your laptop/workstation.
+Before deploying to the cloud, verify the dummy code works on your laptop/workstation.  We recommend using the Google Cloud workstations for this.  They already have `docker` and `gcloud` and other useful utilities installed.
 
 **1. Authenticate with Google Cloud**
 Ensure you have Google Cloud credentials available locally so the container can download the test files:
@@ -34,8 +34,9 @@ gcloud auth application-default login
 ```
 
 **2. Build the Docker Container**
+
 ```bash
-docker build -t noaa-my-custom-model:latest .
+docker build -t optics-hello-world:latest .
 ```
 
 **3. Run the Container**
@@ -44,7 +45,7 @@ docker build -t noaa-my-custom-model:latest .
 docker run -p 8080:8080 \
   -v ~/.config/gcloud:/tmp/.config/gcloud \
   -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json \
-  noaa-my-custom-model:latest
+  optics-hello-world:latest
 ```
 
 **4. Prepare Your Test Payloads**
@@ -78,26 +79,43 @@ If successful, your terminal will log the processing steps, and new KWCOCO files
 
 ## ☁️ Step 3: Deploy to Cloud
 
-Once you are happy with local testing, push your container to the Google Artifact Registry:
+Once you are happy with local testing, we will push this container to the Google Artifact Registry.
+
+***!!!!NB!!!!*** The Artifact Registry is where everyone's models lives.  By pushing your docker image to the registry, there is a risk that you may overwrite existing docker images.  Please be careful here.
+
+Let's list the existing images in the registry first:
+
+```bash
+gcloud artifacts packages list \
+  --project=ggn-nmfs-osi-dev-1 \
+  --location=us-central1 \
+  --repository=nmfs-dev-uc1-docker-repository
+```
+
+You should see optics-hello-world in here.  By deploying the image you just built, you are going to "cover up" the old image.  The old image will still be there somewhere, buried in the history, but the `optics-hello-world:latest` image that you just built will be the new image that everyone has access to in the Optics SI.  This is fine - that's what this image is for.  However, it is important to note that in general, this deployment process **replaces** existing images in the repo.
+
+Now that we've been thoroughly warned, let's move along.
 
 ```bash
 # Tag your image for the registry
-docker tag noaa-my-custom-model:latest us-central1-docker.pkg.dev/YOUR-PROJECT/YOUR-REPO/my-custom-model:v1.0
+docker tag optics-hello-world:latest us-central1-docker.pkg.dev/ggn-nmfs-osi-dev-1/nmfs-dev-uc1-docker-repository/optics-hello-world:latest
 
 # Push it
-docker push us-central1-docker.pkg.dev/YOUR-PROJECT/YOUR-REPO/my-custom-model:v1.0
+docker push us-central1-docker.pkg.dev/ggn-nmfs-osi-dev-1/nmfs-dev-uc1-docker-repository/optics-hello-world:latest
 ```
 
 ## ⚙️ Step 4: Hook it into Airflow
 
-To make your model available in the system, you must register it in the Airflow DAG (`scott_test_dag.py`).
+To make your model available in the system, you normally must register it in the Airflow DAG.  We are going to skip this step for now, as the optics-hello-world model is already available in [the optics batch processing DAG](TODO)
 
-Locate the `MODEL_JOB_MAP` dictionary in the DAG file and add a new entry for your model. It must use the `inference_runner.py` as its argument to trigger the batch adapter:
+The DAGs are just python files stored in a bucket [here](https://console.cloud.google.com/storage/browser/us-central1-composer-env1-73848881-bucket/dags).  You can see the existing ones in there.  Open up [the optics batch processing DAG](TODO) to view the contents.
+
+Locate the `MODEL_JOB_MAP` dictionary in the DAG file and see the entries for the various models. It's just a dictionary containing a hard-coded list of all of the available models and the relevant configuration for that model.  They look something like this:
 
 ```python
-    "my-custom-model": {
+    "optics-hello-world": {
         "region": "us-central1",
-        "image": "us-central1-docker.pkg.dev/YOUR-PROJECT/YOUR-REPO/my-custom-model:v1.0",
+        "image": "us-central1-docker.pkg.dev/ggn-nmfs-osi-dev-1/nmfs-dev-uc1-docker-repository/optics-hello-world:latest",
         "cpu": 4,
         "memory": "16Gi",
         "gpu": 1,                   # Change to 0 if CPU only
@@ -109,17 +127,17 @@ Locate the `MODEL_JOB_MAP` dictionary in the DAG file and add a new entry for yo
     }
 ```
 
-Submit a Pull Request to the repository containing the Airflow DAG. Once merged, your dummy model is officially in production!
+Note the "image" field.  This is precisely the image that you just built and pushed into the registry!  That tells the DAG which image to delegate to when you select the "optics-hello-world" model in the dropdown.
 
 ## 🚀 Step 5: Triggering in Airflow
 
 When you run a job in Google Cloud Batch, the container boots up on an isolated, headless Virtual Machine. It doesn't have a user interface to accept manual inputs or local curl commands.
 
-Because of this, **Airflow requires your JSON trigger payload to be uploaded to GCS first**. Airflow will pass the GCS URI of your JSON file to the headless VM, which will then download it and start the processing loop you just tested.
+Because of this, **Airflow requires your JSON trigger payload to be uploaded to GCS first**. Airflow will pass the GCS URI of your JSON file to the headless VM, which will then download it and start the processing loop you just tested.  So, go back to find your favorite test payload that you created in Step 2.  We are going to upload that to GCS.
 
 1. Upload your finalized JSON configuration to GCS (e.g., `gs://ggn-nmfs-osi-dev-1-data/my-folder/trigger_payload.json`).
 2. Go to the Airflow UI and click **Trigger DAG w/ config**.
-3. Set the `model_type` to your newly registered model name (e.g., `my-custom-model`).
+3. Set the `model_type` to `optics-hello-world`.
 4. Set the `input_file` parameter to the GCS URI of your uploaded JSON payload.
 5. Hit **Trigger** and monitor your job's progress in the logs!
 
@@ -137,7 +155,7 @@ Replace this logic with your actual framework.
 *   Read the input images/videos from the provided `input_dir`.
 *   Load custom weights or thresholds from the `config` dictionary.
 *   Run your specific computer vision framework.
-*   Save your output to the `output_file_path` using the [KWCOCO (Kitware COCO)](https://kwcoco.readthedocs.io/en/latest/) JSON specification, as shown in the example code.
+*   Save your output to the `output_file_path` in an appropriate serialization format.  We recommend using the [KWCOCO (Kitware COCO)](https://kwcoco.readthedocs.io/en/latest/) JSON specification, as shown in the example code.  KWCOCO supports both images and video, and supports a wide range of annotation types such as classification, detection, and segmentation.  If we all stick to KWCOCO, then we can build interoperable pipelines that we only have to write once, and can share between groups.
 
 ## 📦 Step 7: Update Dependencies
 
@@ -149,6 +167,7 @@ If you need heavy system-level packages (like custom NVIDIA drivers or specific 
 
 Now that your custom code is in place, simply repeat Phase 1!
 1. Test it locally using `curl` (Step 2).
-2. Build and push a new version to the Artifact Registry (Step 3). Note: **Increment your version tag** (e.g., `v1.1`) so you don't overwrite your previous work!
-3. Update the Airflow DAG `MODEL_JOB_MAP` to point to your new `v1.1` image (Step 4).
-4. Trigger the DAG!
+2. Pick a different name for your docker image (not optics-hello-world).  Feel free to continue using optics-hello-world to test on.  Try not to clutter up the artifact registry with a bunch of `test_pipeline-model_v8` sort of thing.  We all have to share this space.
+3. Build and push a new version to the Artifact Registry (Step 3). Note: **Increment your version tag** (e.g., `v1.1`) so you don't overwrite your previous work!  We recommend pushing your latest image with the :latest tag that always points to the latest model.  This makes it so that you don't have to repeatedly update the DAG.
+4. Update the Airflow DAG `MODEL_JOB_MAP` to point to your `:latest` image (Step 3).
+5. Trigger the DAG!
