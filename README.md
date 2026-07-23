@@ -1,13 +1,20 @@
 # NOAA NMFS Optics Model Deployment Template ("Hello World")
 
-Welcome! This repository is a starting template for deploying your custom Computer Vision models into the Optics SI Airflow ecosystem.  If you have an Ultralytics-family model or a VIAME-family model 🛑 **STOP!**, there are existing frameworks for that - please use those - it's easier that way.  :)
+Welcome! This repository is a starting template for deploying your custom Computer Vision models into the Optics SI Airflow ecosystem. If you have an Ultralytics-family model or a VIAME-family model 🛑 **STOP!**, there are existing frameworks for that - please use those - it's easier that way. :)
 
-Our infrastructure requires models to run inside isolated Docker containers, expose an HTTP endpoint, and communicate with Google Cloud Storage (GCS).  We have pre-written most of this infrastructure for you, so you can just focus on importing your model and getting predictions into the expected shape.
+Our infrastructure requires models to run inside isolated Docker containers, expose an HTTP endpoint, and communicate with Google Cloud Storage (GCS). We have pre-written most of this infrastructure for you, so you can just focus on importing your model and getting predictions into the expected shape.
 
+---
 
-## 🏁 Step 0: Fork and Clone
+# 🟢 Phase 1: Deploying the "Hello World" Baseline
 
-You will likely need to edit only the `model.py`, which is where your prediction code lives, and the `Dockerfile`, which handles the dependencies of your code and the other base dependencies of the project.  The rest of the files (`app.py`, `inference_runner.py`) are abstract plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
+Before writing any custom computer vision code, we are going to deploy this repository exactly as it is. It currently contains a "dummy" model that draws random bounding boxes. 
+
+By deploying this dummy model first, you will verify that your local Docker setup, Google Cloud permissions, and Airflow configurations are working perfectly.
+
+## 🏁 Step 1: Fork and Clone
+
+You will likely need to edit only the `model.py`, which is where your prediction code lives, and the `Dockerfile`, which handles the dependencies of your code and the other base dependencies of the project. The rest of the files (`app.py`, `inference_runner.py`) are abstract plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
 
 Before changing any code, fork this repository and clone it to your local machine (or Google Cloud Workstation). All subsequent commands assume you are running them from the root of this cloned directory.
 
@@ -16,21 +23,12 @@ git clone https://github.com/csbrown-noaa/optics-models-hello-world.git
 cd optics-models-hello-world
 ```
 
-## 🚀 Step 1: Write your logic
+## 💻 Step 2: Test the Dummy Locally
 
-Open `model.py`. You will see a fake "Hello World" model that simply assigns random bounding boxes to whatever images or videos it finds.
-
-Replace this logic with your actual framework. You can add any required pip packages to `requirements.txt` (like `torch`, `ultralytics`). We have already included OpenCV (`opencv-python-headless`).
-
-*Note: Please format your outputs using the [KWCOCO (Kitware COCO)](https://kwcoco.readthedocs.io/en/latest/) JSON specification, as shown in the example code.*
-
-## 💻 Step 2: Test Locally
-
-Before deploying to the cloud, you should verify your code works on your laptop/workstation.
+Before deploying to the cloud, verify the dummy code works on your laptop/workstation.
 
 **1. Authenticate with Google Cloud**
 Ensure you have Google Cloud credentials available locally so the container can download the test files:
-
 ```bash
 gcloud auth application-default login
 ```
@@ -57,7 +55,7 @@ First, open the JSON files locally on your machine. Replace all the `<TODO_YOUR_
 Next, you must upload the local test images, the test video, and your newly modified `input_manifest.json` up to that exact Google Cloud Storage location (e.g., `gs://ggn-nmfs-osi-dev-1-data/scott/test-images/`). *Without this step, your local Docker container won't have anything to download during the test!*
 
 **5. Send Test Requests**
-In a new terminal (while your Docker container is still running), test the different data ingestion methods. This simulates exactly what the Airflow pipeline will do in production:
+In a new terminal (while your Docker container is still running), test the different data ingestion methods:
 
 ```bash
 # Test 1: Single Video
@@ -111,7 +109,7 @@ Locate the `MODEL_JOB_MAP` dictionary in the DAG file and add a new entry for yo
     }
 ```
 
-Submit a Pull Request to the repository containing the Airflow DAG. Once merged, your model is officially in production!
+Submit a Pull Request to the repository containing the Airflow DAG. Once merged, your dummy model is officially in production!
 
 ## 🚀 Step 5: Triggering in Airflow
 
@@ -125,3 +123,32 @@ Because of this, **Airflow requires your JSON trigger payload to be uploaded to 
 4. Set the `input_file` parameter to the GCS URI of your uploaded JSON payload.
 5. Hit **Trigger** and monitor your job's progress in the logs!
 
+---
+
+# 🔬 Phase 2: Bring Your Own Model (BYOM)
+
+Congratulations! You have successfully executed a full end-to-end pipeline. Now it is time to replace the "dummy" code with your actual science.
+
+## 🧠 Step 6: Write Your Logic
+
+Open `model.py`. You will see the "Hello World" logic that assigns random bounding boxes. 
+
+Replace this logic with your actual framework. 
+*   Read the input images/videos from the provided `input_dir`.
+*   Load custom weights or thresholds from the `config` dictionary.
+*   Run your specific computer vision framework.
+*   Save your output to the `output_file_path` using the [KWCOCO (Kitware COCO)](https://kwcoco.readthedocs.io/en/latest/) JSON specification, as shown in the example code.
+
+## 📦 Step 7: Update Dependencies
+
+If your model requires specific libraries (like `torch`, `tensorflow`, or `ultralytics`), you must add them to the `requirements.txt` file. We have already included OpenCV (`opencv-python-headless`) for you.
+
+If you need heavy system-level packages (like custom NVIDIA drivers or specific `apt-get` binaries), you can add those to the `Dockerfile`.
+
+## 🔄 Step 8: Re-build and Re-deploy
+
+Now that your custom code is in place, simply repeat Phase 1!
+1. Test it locally using `curl` (Step 2).
+2. Build and push a new version to the Artifact Registry (Step 3). Note: **Increment your version tag** (e.g., `v1.1`) so you don't overwrite your previous work!
+3. Update the Airflow DAG `MODEL_JOB_MAP` to point to your new `v1.1` image (Step 4).
+4. Trigger the DAG!
