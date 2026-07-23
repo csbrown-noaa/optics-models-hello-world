@@ -14,8 +14,6 @@ By deploying this dummy model first, you will verify that your local Docker setu
 
 ## 🏁 Step 1: Fork and Clone
 
-You will likely need to edit only the `model.py`, which is where your prediction code lives, and the `Dockerfile`, which handles the dependencies of your code and the other base dependencies of the project. The rest of the files (`app.py`, `inference_runner.py`) are abstract plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
-
 Before changing any code, fork this repository and clone it to your local machine (or Google Cloud Workstation). All subsequent commands assume you are running them from the root of this cloned directory.
 
 ```bash
@@ -83,6 +81,12 @@ Once you are happy with local testing, we will push this container to the Google
 
 ***!!!!NB!!!!*** The Artifact Registry is where everyone's models lives.  By pushing your docker image to the registry, there is a risk that you may overwrite existing docker images.  Please be careful here.
 
+**1. Authenticate with Google Cloud**
+Didn't we just do this??!!  Yes, but we used this to get application credentials for the docker image.  Since the docker image is doing work **on your behalf**, it needs its own set of credentials.  This login is so that you can interact directly with gcloud, which is what we're doing now.
+```bash
+gcloud auth login
+```
+
 Let's list the existing images in the registry first:
 
 ```bash
@@ -146,6 +150,9 @@ Because of this, **Airflow requires your JSON trigger payload to be uploaded to 
 # 🔬 Phase 2: Bring Your Own Model (BYOM)
 
 Congratulations! You have successfully executed a full end-to-end pipeline. Now it is time to replace the "dummy" code with your actual science.
+
+You will likely need to edit only the `model.py`, which is where your prediction code lives, and the `Dockerfile`, which handles the dependencies of your code and the other base dependencies of the project. The rest of the files (`app.py`, `inference_runner.py`) are abstract plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
+
 
 ## 🧠 Step 6: Write Your Logic
 
