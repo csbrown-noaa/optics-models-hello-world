@@ -1,22 +1,19 @@
-# NOAA NMFS Model Deployment Template ("Hello World")
+# NOAA NMFS Optics Model Deployment Template ("Hello World")
 
-Welcome! This repository is a starting template for deploying your custom Computer Vision models (PyTorch, TensorFlow, Ultralytics, etc.) into the NOAA Cloud Batch ecosystem.
+Welcome! This repository is a starting template for deploying your custom Computer Vision models into the Optics SI Airflow ecosystem.  If you have an Ultralytics-family model or a VIAME-family model 🛑 **STOP!**, there are existing frameworks for that - please use those - it's easier that way.  :)
 
-Our infrastructure requires models to run inside isolated Docker containers, expose an HTTP endpoint, and communicate with Google Cloud Storage (GCS). **We have pre-written all of this infrastructure for you.**
+Our infrastructure requires models to run inside isolated Docker containers, expose an HTTP endpoint, and communicate with Google Cloud Storage (GCS).  We have pre-written most of this infrastructure for you, so you can just focus on importing your model and getting predictions into the expected shape.
 
-## 🛑 Stop! What do I need to edit?
-
-You only need to edit **ONE** file: `model.py`.
-
-The rest of the files (`app.py`, `inference_runner.py`) are immutable plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
 
 ## 🏁 Step 0: Fork and Clone
+
+You will likely need to edit only the `model.py`, which is where your prediction code lives, and the `Dockerfile`, which handles the dependencies of your code and the other base dependencies of the project.  The rest of the files (`app.py`, `inference_runner.py`) are abstract plumbing that handle the annoying parts: downloading videos from the cloud, starting web servers, managing memory, and uploading your final results back to the cloud.
 
 Before changing any code, fork this repository and clone it to your local machine (or Google Cloud Workstation). All subsequent commands assume you are running them from the root of this cloned directory.
 
 ```bash
-git clone https://github.com/YOUR-ORG/your-forked-repo.git
-cd your-forked-repo
+git clone https://github.com/csbrown-noaa/optics-models-hello-world.git
+cd optics-models-hello-world
 ```
 
 ## 🚀 Step 1: Write your logic
