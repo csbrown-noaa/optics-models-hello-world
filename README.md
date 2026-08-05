@@ -133,23 +133,32 @@ The entries in the json are for the various models. It's just a dictionary conta
 
 Add your model to the json file, save, and upload it back to the original GCS folder.
 
-
 ```json
     "optics-hello-world": {
         "region": "us-central1",
         "image": "us-central1-docker.pkg.dev/ggn-nmfs-osi-dev-1/nmfs-dev-uc1-docker-repository/optics-hello-world:latest",
         "cpu": 4,
         "memory": "16Gi",
-        "gpu": 0,                        // Change to 1 if GPU only
-        "gpu_type": null,                // Set to "nvidia-l4" if GPU only
-        "machine_type": "c2-standard-4", // Set to "g2-standard-4" if GPU only
-        "timeout": 360000,               // 360000s = 4 days
+        "gpu": 0,                        
+        "gpu_type": null,                
+        "machine_type": "c2-standard-4",
+        "timeout": 360000,               
         "command": ["python"],
-        "args": ["/workspace/inference_runner.py"] // <--- DO NOT CHANGE THIS
+        "args": ["/workspace/inference_runner.py"]
     }
 ```
 
+
 Note the "image" field.  This is precisely the image that you just built and pushed into the registry!  That tells the DAG which image to delegate to when you select the "optics-hello-world" model in the dropdown.
+
+Notes:
+```
+ "gpu": 0,                         // Change to 1 if GPU only <br>
+ "gpu_type": null,                 // Set to "nvidia-l4" if GPU only  <br>
+ "machine_type": "c2-standard-4",  // Set to "g2-standard-4" if GPU only  <br>
+ "timeout": 360000,                // 360000s = 4 days  <br>
+ "args": ["/workspace/inference_runner.py"] // <--- DO NOT CHANGE THIS  <br>
+ ```
 
 
 ## 🚀 Step 5: Triggering in Airflow
