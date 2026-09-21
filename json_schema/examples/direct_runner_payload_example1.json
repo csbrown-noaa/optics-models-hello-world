@@ -1,0 +1,6 @@
+{
+  "input_files": [
+    "gs://my-bucket/data/image_001.jpg"
+  ],
+  "json_output_location": "gs://my-bucket/results/run_12345/custom_predictions_name.json"
+}

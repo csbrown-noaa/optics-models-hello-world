@@ -1,0 +1,16 @@
+{
+  "instances": [
+    {
+      "input_files": [
+        "gs://my-bucket/data/image_001.jpg"
+      ],
+      "json_output_location": "gs://my-bucket/results/run_12345/predictions.json",
+      "config": {
+        "batch_size": 8
+      }
+    }
+  ],
+  "parameters": {
+    "device": "cuda:0"
+  }
+}

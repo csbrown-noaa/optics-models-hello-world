@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InferenceRunnerInputPayload",
+  "description": "Schema for direct execution input payloads processed by inference_runner.",
+  "type": "object",
+  "properties": {
+    "input_files": {
+      "type": "array",
+      "description": "List of GCS URIs for input files (images/videos).",
+      "items": {
+        "type": "string",
+        "pattern": "^gs://"
+      },
+      "minItems": 1
+    },
+    "input_manifest": {
+      "type": "string",
+      "description": "GCS URI pointing to a JSON manifest containing a list/array of input file URIs.",
+      "pattern": "^gs://"
+    },
+    "output_path": {
+      "type": "string",
+      "description": "Destination GCS directory path where the model can write arbitrary output files (CSVs, images, sidecars, etc.).",
+      "pattern": "^gs://"
+    },
+    "json_output_location": {
+      "type": "string",
+      "description": "Destination GCS file URI where the inference runner writes the raw JSON prediction response.",
+      "pattern": "^gs://.*\\.json$"
+    },
+    "config": {
+      "type": "object",
+      "description": "Optional model hyperparameters or job settings passed directly to model.py.",
+      "additionalProperties": true
+    }
+  },
+  "oneOf": [
+    { "required": ["input_files"] },
+    { "required": ["input_manifest"] }
+  ],
+  "allOf": [
+    {
+      "oneOf": [
+        { "required": ["output_path"] },
+        { "required": ["json_output_location"] }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}
