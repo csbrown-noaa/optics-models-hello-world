@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PredictEndpointPayload",
+  "description": "HTTP POST request schema for the /predict endpoint matching Vertex AI specification.",
+  "type": "object",
+  "properties": {
+    "instances": {
+      "type": "array",
+      "description": "Array of prediction instances (can be input objects or simple GCS string URIs).",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^gs://"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "input_files": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^gs://" },
+                "minItems": 1
+              },
+              "input_manifest": {
+                "type": "string",
+                "pattern": "^gs://"
+              },
+              "json_output_location": {
+                "type": "string",
+                "pattern": "^gs://.*\\.json$"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "oneOf": [
+              { "required": ["input_files"] },
+              { "required": ["input_manifest"] }
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Global execution parameters applied across instances.",
+      "properties": {
+        "output_path": {
+          "type": "string",
+          "description": "Destination GCS path for writing model output files.",
+          "pattern": "^gs://"
+        },
+        "config": {
+          "type": "object",
+          "description": "Global model configuration and hyperparameters.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["instances"],
+  "additionalProperties": false
+}

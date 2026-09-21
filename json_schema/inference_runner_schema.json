@@ -40,7 +40,7 @@
   ],
   "allOf": [
     {
-      "oneOf": [
+      "anyOf": [
         { "required": ["output_path"] },
         { "required": ["json_output_location"] }
       ]
