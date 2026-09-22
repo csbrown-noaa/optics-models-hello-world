@@ -1,8 +1,7 @@
 {
   "instances": [
     {
-      "input_manifest": "gs://my-bucket/data/calanus_2026_image_manifest.json",
-      "json_output_location": "gs://my-bucket/results/run_12345/predictions_summary.json",
+      "input_manifest": "gs://ggn-nmfs-osi-dev-1-data/brenda/input_manifest.json",
       "config": {
         "confidence_threshold": 0.35,
         "batch_size": 32
@@ -10,6 +9,7 @@
     }
   ],
   "parameters": {
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
     "device": "cuda:0"
   }
 }

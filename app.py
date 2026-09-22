@@ -6,10 +6,7 @@ Biologists: Please place your code in `model.py`.
 
 import os
 import signal
-import json
-import uuid
 import shutil
-from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
 from waitress import serve
@@ -17,6 +14,8 @@ from google.cloud import storage
 
 # Import the user's custom model logic
 import model
+from utils.payload_utils import parse_execution_payload
+
 
 app = Flask(__name__)
 CORS(app)
@@ -83,90 +82,27 @@ def is_alive():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    storage_client = storage.Client()
+    payload_data = request.get_json()
     
+    # Validate & normalize request against endpoint schema
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "Missing or invalid JSON payload"}), 400
-        
-        instances = data.get("instances")
-        if not instances or not isinstance(instances, list):
-            return jsonify({"error": "'instances' is required and must be a non-empty list"}), 400
-    
-        global_params = data.get("parameters", {})
-        results = []
-
-        for instance in instances:
-            run_id = f"run_{uuid.uuid4().hex}"
-            run_dir = f"/tmp/{run_id}"
-            inputs_dir = os.path.join(run_dir, "inputs")
-            os.makedirs(inputs_dir, exist_ok=True)
-            
-            try:
-                # 1. Extract Configs
-                config = instance.get("config", {})
-                output_file = instance.get("output_file")
-                if not output_file:
-                    raise ValueError("Instance missing 'output_file' destination URI.")
-                
-                manifest_uri = config.get("input_manifest", global_params.get("input_manifest"))
-                
-                # 2. Input Data Ingestion
-                input_uris = []
-                if manifest_uri:
-                    print(f"[{run_id}] Downloading manifest {manifest_uri}...")
-                    manifest_local = os.path.join(run_dir, "manifest.json")
-                    download_gcs_uri(storage_client, manifest_uri, manifest_local)
-                    with open(manifest_local, 'r') as f:
-                        input_uris = json.load(f)
-                else:
-                    input_uris = instance.get("input_files", [])
-
-                if not input_uris:
-                    raise ValueError("No input files resolved from instance payload or manifest.")
-
-                print(f"[{run_id}] Downloading {len(input_uris)} input files to {inputs_dir}...")
-                with ThreadPoolExecutor(max_workers=16) as executor:
-                    for uri in input_uris:
-                        filename = os.path.basename(uri)
-                        dest = os.path.join(inputs_dir, filename)
-                        executor.submit(download_gcs_uri, storage_client, uri, dest)
-
-                # 3. Call User's Custom Model Logic
-                local_output = os.path.join(run_dir, "results.json")
-                print(f"[{run_id}] Delegating to user model.py...")
-                
-                # We pass the input directory, the expected output path, and the config.
-                model.run_inference(
-                    input_dir=inputs_dir,
-                    output_file_path=local_output,
-                    config=config
-                )
-                
-                if not os.path.exists(local_output):
-                    raise FileNotFoundError(f"model.py finished, but did not create {local_output}")
-
-                # 4. Result Upload
-                print(f"[{run_id}] Uploading results to {output_file}...")
-                upload_gcs_uri(storage_client, local_output, output_file)
-                
-                results.append({"status": "success", "output_file": output_file})
-
-            except Exception as inner_e:
-                print(f"[{run_id}] Instance processing failed: {str(inner_e)}")
-                results.append({"status": "error", "error": str(inner_e)})
-                
-            finally:
-                # 5. Strict Cleanup
-                print(f"[{run_id}] Cleaning up workspace {run_dir}...")
-                shutil.rmtree(run_dir, ignore_errors=True)
-
-        return jsonify({"predictions": results})
-     
+        jobs = parse_execution_payload(
+            payload_data, 
+            schema_path="json_schema/predict_endpoint_schema.json"
+        )
     except Exception as e:
-        print(f"Error in overall prediction flow: {str(e)}")
-        return jsonify({"error": str(e)}), 500 
+        return jsonify({"error": str(e)}), 400
+
+    results = []
+    for job in jobs:
+        res = model.run_model(
+            input_files=job["input_files"],
+            output_path=job["output_path"],
+            config=job["config"]
+        )
+        results.append(res)
+
+    return jsonify({"predictions": results, "status": "success"})
 
 if __name__ == "__main__":    
     # 360000 seconds = 100 hours. This is the maximum length timeout.

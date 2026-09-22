@@ -37,55 +37,68 @@ gcloud auth application-default login
 docker build -t optics-hello-world:latest .
 ```
 
-**3. Run the Container**
-*(This maps your local GCP credentials into the container so it can access buckets)*
-
-For macOS/Linux (or Cloud Workstations):
-
-```bash
-docker run -p 8080:8080 \
-  -v ~/.config/gcloud:/tmp/.config/gcloud \
-  -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json \
-  -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 \
-  optics-hello-world:latest
-```
-
-For Windows (using PowerShell):
-```bash
-docker run -p 8080:8080 -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json optics-hello-world:latest
-
-docker run -p 8080:8080 `
-  -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
-  -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
-  -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `
-  optics-hello-world:latest
-```
-
-**4. Prepare Your Test Payloads**
+**3. Prepare Your Test Payloads**
 We have provided template JSON payloads in the local `test_payloads/` directory along with some sample media. 
 
 First, open the JSON files locally on your machine. Replace all the `<TODO_YOUR_FOLDER>` placeholders with a unique folder name you control (e.g., your username).
 
 Next, you must upload the local test images, the test video, and your newly modified `input_manifest.json` up to that exact Google Cloud Storage location (e.g., `gs://ggn-nmfs-osi-dev-1-data/scott/test-images/`). *Without this step, your local Docker container won't have anything to download during the test!*
 
-**5. Send Test Requests**
+**4. Input/Output Execution Contracts**
+
+We have established a unified input/output contract supporting two execution pathways across both local and cloud environments:
+
+- Direct Execution (inference_runner.py): Bypasses HTTP overhead to run model code directly via payload_utils.py. This path is optimized for batch jobs running natively inside our Airflow runtime and Google Cloud Batch.
+
+- HTTP API Endpoint (app.py /predict): Provides a lightweight HTTP server interface fully compatible with the Vertex AI Prediction API standard payload format.
+
+ Model developers can choose either execution style depending on their integration requirements. Both options deserialize through the same underlying payload parser and strictly validate against JSON schema specifications defined under /json_schema.
+
+**Direct Execution**
+
+For Windows (using PowerShell):
+
+```bash
+docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/brenda/dirrect_runner_payload_input_files.json"  `
+ -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
+ -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
+ -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `
+optics-hello-world python inference_runner.py
+
+docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/brenda/direct_runner_payload_input_manifest.json"  `
+ -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
+ -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
+ -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `
+optics-hello-world python inference_runner.py
+```
+
+**HTTP API Endpoint**
+
+For Windows (using PowerShell):
+
+```bash
+docker run --rm -p 8080:8080 `
+ -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
+ -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
+ -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `
+  optics-hello-world
+
+```
 In a new terminal (while your Docker container is still running), test the different data ingestion methods:
 
 ```bash
-# Test 1: Single Video
-curl -X POST http://localhost:8080/predict \
-     -H "Content-Type: application/json" \
-     -d @test_payloads/test_payload_video.json
+# Test 1: Multiple simple string uris
+curl-X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_simple_string_uri.json"
 
-# Test 2: Multiple Images
-curl -X POST http://localhost:8080/predict \
-     -H "Content-Type: application/json" \
-     -d @test_payloads/test_payload_images.json
+# Test 2: Single Video
+curl.exe -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_files_video.json"
 
-# Test 3: Using a Manifest
-curl -X POST http://localhost:8080/predict \
-     -H "Content-Type: application/json" \
-     -d @test_payloads/test_payload_manifest.json
+# Test 3: input_files
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_files.json"
+
+# Test 4: Manifest
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_manifest.json"
+
 ```
 
 If successful, your terminal will log the processing steps, and new KWCOCO files will appear in your GCS bucket!

@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /workspace
 
@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY inference_runner.py .
 COPY model.py .
+COPY ./json_schema ./json_schema
+COPY ./utils ./utils
 
 ENV HOME=/workspace
 

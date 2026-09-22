@@ -1,0 +1,16 @@
+{
+  "instances": [
+    {
+      "input_files": [
+        "gs://ggn-nmfs-osi-dev-1-data/test-images/bigfish.mp4"
+      ]
+    }
+  ],
+  "parameters": {
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+    "config": {
+      "confidence_threshold": 0.5,
+      "batch_size": 8
+    }
+  }
+}

@@ -1,7 +1,0 @@
-{
-  "input_manifest": "gs://my-bucket/data/input_manifest.json",
-  "output_path": "gs://my-bucket/results/run_12345/",
-  "config": {
-    "confidence_threshold": 0.5
-  }
-}

@@ -1,0 +1,9 @@
+{
+  "input_manifest": "gs://ggn-nmfs-osi-dev-1-data/brenda/input_manifest.json",
+  "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+  "config": {
+     "options": {
+          "conf_thresh": 0.3
+        }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "instances": [
+    "gs://ggn-nmfs-osi-dev-1-data/test-images/snapperFish.jpg"
+  ],
+  "parameters": {
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+    "config": {
+      "confidence_threshold": 0.5,
+      "batch_size": 8
+    }
+  }
+}
