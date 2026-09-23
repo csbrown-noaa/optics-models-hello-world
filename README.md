@@ -99,6 +99,8 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
 # Test 4: Manifest
 curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_manifest.json"
 
+# Test 4: Multiple instances
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_mutiple_instances.json"
 ```
 
 If successful, your terminal will log the processing steps, and new KWCOCO files will appear in your GCS bucket!

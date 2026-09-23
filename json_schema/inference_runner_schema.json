@@ -21,7 +21,7 @@
     "output_path": {
       "type": "string",
       "description": "Destination GCS directory path where the model can write arbitrary output files (CSVs, images, sidecars, etc.).",
-      "pattern": "^gs://"
+      "pattern": "^gs://.*/$"
     },
     "json_output_location": {
       "type": "string",

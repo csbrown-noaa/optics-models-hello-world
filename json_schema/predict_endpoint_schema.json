@@ -50,8 +50,8 @@
       "properties": {
         "output_path": {
           "type": "string",
-          "description": "Destination GCS path for writing model output files.",
-          "pattern": "^gs://"
+          "description": "Destination GCS directory path for output files.",
+          "pattern": "^gs://.*/$"
         },
         "config": {
           "type": "object",
