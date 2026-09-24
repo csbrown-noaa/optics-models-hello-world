@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Tuple
 from google.cloud import storage
 import jsonschema
 
-
 def load_json_from_uri(uri: str) -> Dict[str, Any]:
     """
     Reads and parses a JSON file from a local filesystem path or a GCS URI (gs://bucket/path).
@@ -60,7 +59,7 @@ def resolve_input_files(
     return resolved_files
 
 
-def normalize_job_spec(
+def normalize_instance(
     instance: Any, global_parameters: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """
@@ -109,38 +108,3 @@ def normalize_job_spec(
 
     else:
         raise TypeError(f"Unsupported instance payload type: {type(instance)}")
-
-
-def parse_execution_payload(
-    payload: Dict[str, Any], schema_path: str = None
-) -> List[Dict[str, Any]]:
-    """
-    Main entry point for unpacking payloads from both direct runner and /predict HTTP endpoint calls.
-    
-    Args:
-        payload: The loaded JSON payload dictionary.
-        schema_path: Optional path to JSON schema file to validate against.
-        
-    Returns:
-        A list of normalized job dictionaries ready to be passed to model.py.
-    """
-    if schema_path:
-        validate_payload(payload, schema_path)
-
-    normalized_jobs = []
-
-    # HTTP /predict Payload Structure
-    if "instances" in payload:
-        global_parameters = payload.get("parameters", {})
-        for instance in payload["instances"]:
-            job_spec = normalize_job_spec(
-                instance, global_parameters=global_parameters
-            )
-            normalized_jobs.append(job_spec)
-
-    # Direct Execution Payload Structure
-    else:
-        job_spec = normalize_job_spec(payload)
-        normalized_jobs.append(job_spec)
-
-    return normalized_jobs

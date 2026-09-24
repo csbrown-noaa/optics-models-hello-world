@@ -18,10 +18,7 @@ Your goal:
 import os
 import json
 import random
-import tempfile
 import cv2
-
-from utils.utils import download_gcs_file, upload_folder_to_gcs
 
 def run_inference(input_dir: str, output_file_path: str, config: dict):
     """
@@ -130,40 +127,4 @@ def run_inference(input_dir: str, output_file_path: str, config: dict):
         
     print("[MODEL] Inference complete!")
 
-def run_model(input_files: list, output_path: str = None, config: dict = None) -> dict:
-    """
-    High-level entry point invoked by inference_runner.py and app.py.
-    
-    Handles:
-    1. Downloading input files from GCS to a temporary local folder.
-    2. Executing run_inference() logic.
-    3. Uploading generated output files back to GCS if output_path is provided.
-    4. Returning raw JSON dictionary results.
-    """
-    config = config or {}
-    
-    with tempfile.TemporaryDirectory() as temp_input_dir, tempfile.TemporaryDirectory() as temp_output_dir:
-        print(f"[MODEL] Downloading {len(input_files)} input file(s) from GCS...", flush=True)
-        for gcs_uri in input_files:
-            download_gcs_file(gcs_uri, temp_input_dir)
-            
-        local_output_json = os.path.join(temp_output_dir, "predictions.json")
-        
-        # Invoke original core inference function
-        run_inference(
-            input_dir=temp_input_dir,
-            output_file_path=local_output_json,
-            config=config
-        )
-        
-        # Read the generated result JSON
-        with open(local_output_json, "r", encoding="utf-8") as f:
-            results = json.load(f)
-            
-        # If output_path directory is provided, upload generated output files to GCS
-        if output_path:
-            print(f"[MODEL] Uploading output files to {output_path}...", flush=True)
-            upload_folder_to_gcs(temp_output_dir, output_path)
-            
-        return results
     

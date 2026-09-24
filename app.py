@@ -7,16 +7,16 @@ Biologists: Please place your code in `model.py`.
 import os
 import signal
 import shutil
+from pathlib import Path
 from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
 from waitress import serve
 from google.cloud import storage
 
-# Import the user's custom model logic
-import model
-from utils.payload_utils import parse_execution_payload
-from utils.utils import ( write_json_output_to_gcs)
+from utils.payload_utils import validate_payload, normalize_instance
+from utils.run_job import run_job
 
+SCHEMA_PATH = Path(__file__).parent / "json_schema" / "predict_endpoint_schema.json"
 
 app = Flask(__name__)
 CORS(app)
@@ -84,31 +84,17 @@ def is_alive():
 @app.route("/predict", methods=["POST"])
 def predict():
     payload_data = request.get_json()
-    
-    try:
-        jobs = parse_execution_payload(
-            payload_data, 
-            schema_path="json_schema/predict_endpoint_schema.json"
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    validate_payload(payload_data, schema_path=str(SCHEMA_PATH))
 
+    global_params = payload_data.get("parameters", {})
     results = []
-    for job in jobs:
-        res = model.run_model(
-            input_files=job["input_files"],
-            output_path=job.get("output_path"),
-            config=job.get("config", {})
-        )
-        
-        # Upload individual instance result JSON to GCS if specified
-        json_out = job.get("json_output_location")
-        if json_out:
-            write_json_output_to_gcs(res, json_out)
-
+    for raw_instance in payload_data["instances"]:
+        job = normalize_instance(raw_instance, global_params)
+        res = run_job(job) 
         results.append(res)
-
+        
     return jsonify({"predictions": results, "status": "success"})
+
 if __name__ == "__main__":    
     # 360000 seconds = 100 hours. This is the maximum length timeout.
     # Prevents Waitress from closing socket on massive, multi-hour video inference pipelines.
