@@ -27,6 +27,8 @@ def main():
         print(f"[RUNNER] Input Files: {job['input_files']}", flush=True)
         print(f"[RUNNER] Output Path: {job.get('output_path')}", flush=True)
         print(f"[RUNNER] JSON Output Location: {job.get('json_output_location')}", flush=True)
+        print(f"[RUNNER] Conf: {job.get('config')}", flush=True)
+
 
         run_job(job) 
         print("[RUNNER] Execution completed successfully.", flush=True)
