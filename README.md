@@ -88,10 +88,10 @@ In a new terminal (while your Docker container is still running), test the diffe
 
 ```bash
 # Test 1: Multiple simple string uris
-curl-X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_simple_string_uri.json"
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_simple_string_uri.json"
 
 # Test 2: Single Video
-curl.exe -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_files_video.json"
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_files_video.json"
 
 # Test 3: input_files
 curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d "@test_payloads/http_predict_payload_input_files.json"
