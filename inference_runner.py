@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from utils.run_inference_job import run_inference_job
-from utils.payload_utils import (validate_payload, normalize_instance, load_json_from_uri, validate_payload)
+from utils.payload_utils import (validate_payload, normalize_instance, load_json_from_uri)
 
 SCHEMA_PATH = Path(__file__).parent / "json_schema" / "inference_runner_schema.json"
 

@@ -3,9 +3,18 @@ import json
 from typing import Any, Dict
 from google.cloud import storage
 
+# Lazy or global singleton client
+_STORAGE_CLIENT = None
+
+def get_storage_client() -> storage.Client:
+    global _STORAGE_CLIENT
+    if _STORAGE_CLIENT is None:
+        _STORAGE_CLIENT = storage.Client()
+    return _STORAGE_CLIENT
+
 def download_gcs_file(gcs_uri: str, local_dir: str) -> str:
     """Downloads a single GCS file to a local directory and returns local path."""
-    client = storage.Client()
+    client = get_storage_client()
     path_parts = gcs_uri.replace("gs://", "").split("/")
     bucket_name = path_parts[0]
     blob_path = "/".join(path_parts[1:])
@@ -20,7 +29,7 @@ def download_gcs_file(gcs_uri: str, local_dir: str) -> str:
 
 def upload_folder_to_gcs(local_dir: str, gcs_output_path: str):
     """Uploads all files in a local directory to a target GCS folder path."""
-    client = storage.Client()
+    client = get_storage_client()
     path_parts = gcs_output_path.replace("gs://", "").rstrip("/").split("/")
     bucket_name = path_parts[0]
     prefix = "/".join(path_parts[1:])
@@ -48,7 +57,7 @@ def write_json_output_to_gcs(data: dict, target_uri: str) -> None:
     bucket_name = path_parts[0]
     blob_path = "/".join(path_parts[1:])
 
-    client = storage.Client()
+    client = get_storage_client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(blob_path)
 
@@ -69,7 +78,7 @@ def load_json_from_uri(uri: str) -> Dict[str, Any]:
         bucket_name = path_parts[0]
         blob_path = path_parts[1] if len(path_parts) > 1 else ""
 
-        client = storage.Client()
+        client = get_storage_client()
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(blob_path)
         content = blob.download_as_text()
