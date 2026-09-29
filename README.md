@@ -48,7 +48,7 @@ Next, you must upload the local test images, the test video, and your newly modi
 
 We have established a unified input/output contract supporting two execution pathways across both local and cloud environments:
 
-- Direct Execution (inference_runner.py): Bypasses HTTP overhead to run model code directly via run_job.py. This path is optimized for batch jobs running natively inside our Airflow runtime and Google Cloud Batch.
+- Direct Execution (inference_runner.py): Bypasses HTTP overhead to run model code directly via run_inference_job.py. This path is optimized for batch jobs running natively inside our Airflow runtime and Google Cloud Batch.
 
 - HTTP API Endpoint (app.py /predict): Provides a lightweight HTTP server interface fully compatible with the Vertex AI Prediction API standard payload format.
 

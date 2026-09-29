@@ -1,29 +1,7 @@
-import json
-from typing import Any, Dict, List, Tuple
-from google.cloud import storage
+from typing import Any, Dict, List
 import jsonschema
 
-def load_json_from_uri(uri: str) -> Dict[str, Any]:
-    """
-    Reads and parses a JSON file from a local filesystem path or a GCS URI (gs://bucket/path).
-    """
-
-    if uri.startswith("gs://"):
-        # Parse GCS bucket and blob path
-        path_parts = uri[5:].split("/", 1)
-        bucket_name = path_parts[0]
-        blob_path = path_parts[1] if len(path_parts) > 1 else ""
-
-        client = storage.Client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
-        content = blob.download_as_text()
-        return json.loads(content)
-    else:
-        # Load local file path
-        with open(uri, "r", encoding="utf-8") as f:
-            return json.load(f)
-
+from utils.utils import load_json_from_uri
 
 def validate_payload(payload: Dict[str, Any], schema_path: str) -> None:
     """

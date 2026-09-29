@@ -14,7 +14,7 @@ from waitress import serve
 from google.cloud import storage
 
 from utils.payload_utils import validate_payload, normalize_instance
-from utils.run_job import run_job
+from utils.run_inference_job import run_inference_job
 
 SCHEMA_PATH = Path(__file__).parent / "json_schema" / "predict_endpoint_schema.json"
 
@@ -90,7 +90,7 @@ def predict():
     results = []
     for raw_instance in payload_data["instances"]:
         job = normalize_instance(raw_instance, global_params)
-        res = run_job(job) 
+        res = run_inference_job(job) 
         results.append(res)
         
     return jsonify({"predictions": results, "status": "success"})

@@ -2,14 +2,14 @@ import os
 import sys
 from pathlib import Path
 
-from utils.run_job import run_job
+from utils.run_inference_job import run_inference_job
 from utils.payload_utils import (validate_payload, normalize_instance, load_json_from_uri, validate_payload)
 
 SCHEMA_PATH = Path(__file__).parent / "json_schema" / "inference_runner_schema.json"
 
 def main():
     print("==================================================", flush=True)
-    print("  Starting Direct Inference Runner                ", flush=True)
+    print("  Starting Inference Runner Pipeline              ", flush=True)
     print("==================================================", flush=True)
 
     payload_path = os.environ.get("INPUT_PAYLOAD_PATH")
@@ -29,8 +29,7 @@ def main():
         print(f"[RUNNER] JSON Output Location: {job.get('json_output_location')}", flush=True)
         print(f"[RUNNER] Config: {job.get('config')}", flush=True)
 
-
-        run_job(job) 
+        run_inference_job(job) 
         print("[RUNNER] Execution completed successfully.", flush=True)
 
     except Exception as e:

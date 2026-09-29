@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Any, Dict
 from google.cloud import storage
 
 def download_gcs_file(gcs_uri: str, local_dir: str) -> str:
@@ -56,3 +57,24 @@ def write_json_output_to_gcs(data: dict, target_uri: str) -> None:
         content_type="application/json"
     )
     print(f"[RUNNER] Successfully wrote output to {target_uri}", flush=True)
+
+def load_json_from_uri(uri: str) -> Dict[str, Any]:
+    """
+    Reads and parses a JSON file from a local filesystem path or a GCS URI (gs://bucket/path).
+    """
+
+    if uri.startswith("gs://"):
+        # Parse GCS bucket and blob path
+        path_parts = uri[5:].split("/", 1)
+        bucket_name = path_parts[0]
+        blob_path = path_parts[1] if len(path_parts) > 1 else ""
+
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(blob_path)
+        content = blob.download_as_text()
+        return json.loads(content)
+    else:
+        # Load local file path
+        with open(uri, "r", encoding="utf-8") as f:
+            return json.load(f)
