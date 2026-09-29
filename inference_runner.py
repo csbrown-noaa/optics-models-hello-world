@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from utils.run_inference_job import run_inference_job
-from utils.payload_utils import (validate_payload, normalize_instance, load_json_from_uri)
+from utils.payload_utils import (validate_payload, to_job_spec, load_json_from_uri)
 
 SCHEMA_PATH = Path(__file__).parent / "json_schema" / "inference_runner_schema.json"
 
@@ -23,13 +23,13 @@ def main():
         payload_data = load_json_from_uri(payload_path)
         validate_payload(payload_data, schema_path=str(SCHEMA_PATH))
 
-        job = normalize_instance(payload_data)
-        print(f"[RUNNER] Input Files: {job['input_files']}", flush=True)
-        print(f"[RUNNER] Output Path: {job.get('output_path')}", flush=True)
-        print(f"[RUNNER] JSON Output Location: {job.get('json_output_location')}", flush=True)
-        print(f"[RUNNER] Config: {job.get('config')}", flush=True)
+        job_spec = to_job_spec(payload_data)
+        print(f"[RUNNER] Input Files: {job_spec.get('input_files')}", flush=True)
+        print(f"[RUNNER] Output Path: {job_spec.get('output_path')}", flush=True)
+        print(f"[RUNNER] JSON Output Location: {job_spec.get('json_output_location')}", flush=True)
+        print(f"[RUNNER] Config: {job_spec.get('config')}", flush=True)
 
-        run_inference_job(job) 
+        run_inference_job(job_spec) 
         print("[RUNNER] Execution completed successfully.", flush=True)
 
     except Exception as e:

@@ -5,7 +5,7 @@ import json
 from utils.utils import download_gcs_file, upload_folder_to_gcs, write_json_output_to_gcs
 import model
 
-def run_inference_job(job):
+def run_inference_job(job_spec):
     """
     High-level entry point invoked by inference_runner.py and app.py.
     
@@ -15,10 +15,10 @@ def run_inference_job(job):
     3. Uploading generated output files back to GCS if output_path is provided.
     4. Returning raw JSON dictionary results.
     """
-    input_files = job.get('input_files')
-    output_path = job.get('output_path', None)
-    json_output_location = job.get('json_output_location', None)
-    config = job.get('config') or {}
+    input_files = job_spec.get('input_files')
+    output_path = job_spec.get('output_path', None)
+    json_output_location = job_spec.get('json_output_location', None)
+    config = job_spec.get('config') or {}
     
     with tempfile.TemporaryDirectory() as temp_input_dir, tempfile.TemporaryDirectory() as temp_output_dir:
         print(f"[MODEL] Downloading {len(input_files)} input file(s) from GCS...", flush=True)

@@ -13,7 +13,7 @@ from flask_cors import CORS
 from waitress import serve
 from google.cloud import storage
 
-from utils.payload_utils import validate_payload, normalize_instance
+from utils.payload_utils import validate_payload, to_job_spec
 from utils.run_inference_job import run_inference_job
 
 SCHEMA_PATH = Path(__file__).parent / "json_schema" / "predict_endpoint_schema.json"
@@ -89,8 +89,8 @@ def predict():
     global_params = payload_data.get("parameters", {})
     results = []
     for raw_instance in payload_data["instances"]:
-        job = normalize_instance(raw_instance, global_params)
-        res = run_inference_job(job) 
+        job_spec = to_job_spec(raw_instance, global_params)
+        res = run_inference_job(job_spec) 
         results.append(res)
         
     return jsonify({"predictions": results, "status": "success"})

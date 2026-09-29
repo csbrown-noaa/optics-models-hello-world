@@ -37,12 +37,12 @@ def resolve_input_files(
     return resolved_files
 
 
-def normalize_instance(
+def to_job_spec(
     instance: Any, global_parameters: Dict[str, Any] = None
 ) -> Dict[str, Any]:
-    """
-    Normalizes single instance entries or direct runner payloads into a standardized job specification dictionary.
     
+    """Converts a single instance payload item (string URI or dict) into a standardized job specification dictionary.
+
     Returns:
         {
             "input_files": List[str],
@@ -55,7 +55,7 @@ def normalize_instance(
     global_config = global_parameters.get("config", {})
     global_output_path = global_parameters.get("output_path")
 
-    # Branch 1: Simple string GCS URI in instances
+    # String Payload: Single GCS file URI string (e.g., "gs://bucket/video.mp4")
     if isinstance(instance, str):
         return {
             "input_files": [instance],
@@ -64,7 +64,7 @@ def normalize_instance(
             "config": global_config,
         }
 
-    # Branch 2 / Direct Runner: Structured Object Payload
+    # Dictionary Payload: Structured specification (e.g., {"input_files": ["gs://..."]})
     elif isinstance(instance, dict):
         raw_files = instance.get("input_files", [])
         manifest_uri = instance.get("input_manifest")
