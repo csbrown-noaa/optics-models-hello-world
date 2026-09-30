@@ -11,7 +11,7 @@
     }
   ],
   "parameters": {
-    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/",
     "device": "cuda:0"
   }
 }

@@ -59,13 +59,13 @@ We have established a unified input/output contract supporting two execution pat
 For Windows (using PowerShell):
 
 ```bash
-docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/brenda/dirrect_runner_payload_input_files.json"  `
+docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/dirrect_runner_payload_input_files.json"  `
  -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
  -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
  -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `
 optics-hello-world python inference_runner.py
 
-docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/brenda/direct_runner_payload_input_manifest.json"  `
+docker run --rm  -e INPUT_PAYLOAD_PATH="gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/direct_runner_payload_input_manifest.json"  `
  -v ${env:APPDATA}\gcloud:/tmp/.config/gcloud `
  -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/.config/gcloud/application_default_credentials.json `
  -e GOOGLE_CLOUD_PROJECT=ggn-nmfs-osi-dev-1 `

@@ -4,7 +4,7 @@
       "input_files": [
         "gs://ggn-nmfs-osi-dev-1-data/test-images/snapperFish.jpg"
       ],
-      "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/snapperFish1_predictions.json",
+      "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/snapperFish1_predictions.json",
       "config": {
         "confidence_threshold": 0.5
       }
@@ -13,7 +13,7 @@
       "input_files": [
         "gs://ggn-nmfs-osi-dev-1-data/test-images/littleFish.jpg"
       ],
-      "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/littleFish_predictions.json",
+      "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/littleFish_predictions.json",
       "config": {
         "confidence_threshold": 0.3
       }

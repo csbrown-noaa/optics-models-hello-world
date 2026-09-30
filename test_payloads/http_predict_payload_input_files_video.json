@@ -7,7 +7,7 @@
     }
   ],
   "parameters": {
-    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/",
     "config": {
       "confidence_threshold": 0.5,
       "batch_size": 8

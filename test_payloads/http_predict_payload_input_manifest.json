@@ -1,7 +1,7 @@
 {
   "instances": [
     {
-      "input_manifest": "gs://ggn-nmfs-osi-dev-1-data/brenda/input_manifest.json",
+      "input_manifest": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/input_manifest.json",
       "config": {
         "confidence_threshold": 0.35,
         "batch_size": 32
@@ -9,7 +9,7 @@
     }
   ],
   "parameters": {
-    "output_path": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/",
+    "output_path": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/",
     "device": "cuda:0"
   }
 }

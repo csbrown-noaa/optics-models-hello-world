@@ -2,7 +2,7 @@
   "input_files": [
     "gs://ggn-nmfs-osi-dev-1-data/test-images/snapperFish.jpg"
   ],
-  "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/brenda/osi-129/snapperFish_result.json",
+  "json_output_location": "gs://ggn-nmfs-osi-dev-1-data/<YOUR_FOLDER>/snapperFish_result.json",
   "config": {
     "options": {
       "conf_thresh": 0.5
